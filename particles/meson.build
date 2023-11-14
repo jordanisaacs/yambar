@@ -40,6 +40,7 @@ deps = {
   'progress-bar': [],
   'ramp': [],
   'string': [],
+  'icon': [],
 }
 
 particles = []

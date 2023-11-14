@@ -8,6 +8,8 @@ struct private {
     char *monitor;
     enum bar_layer layer;
     enum bar_location location;
+    struct basedirs *basedirs;
+    struct themes *themes;
     int height;
     int left_spacing, right_spacing;
     int left_margin, right_margin;

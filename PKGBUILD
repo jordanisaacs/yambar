@@ -13,6 +13,7 @@ depends=(
   'pixman'
   'libyaml'
   'alsa-lib'
+  'libpng'
   'libudev.so'
   'json-c'
   'libmpdclient'

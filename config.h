@@ -4,6 +4,7 @@
 #include "yml.h"
 #include "bar/bar.h"
 #include "font-shaping.h"
+#include "icon.h"
 
 struct bar;
 struct particle;
@@ -22,6 +23,10 @@ enum font_shaping conf_to_font_shaping(const struct yml_node *node);
 struct conf_inherit {
     const struct fcft_font *font;
     enum font_shaping font_shaping;
+    struct themes *themes;
+    struct basedirs *basedirs;
+    char *icon_theme;
+    int icon_size;
     pixman_color_t foreground;
 };
 

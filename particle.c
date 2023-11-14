@@ -16,6 +16,7 @@
 #define LOG_ENABLE_DBG 0
 #include "log.h"
 #include "bar/bar.h"
+#include "icon.h"
 
 void
 particle_default_destroy(struct particle *particle)
@@ -25,14 +26,16 @@ particle_default_destroy(struct particle *particle)
     fcft_destroy(particle->font);
     for (size_t i = 0; i < MOUSE_BTN_COUNT; i++)
         free(particle->on_click_templates[i]);
+
+    themes_dec(particle->themes);
+    basedirs_dec(particle->basedirs);
+    free(particle->icon_theme);
     free(particle);
 }
 
 struct particle *
-particle_common_new(int left_margin, int right_margin,
-                    char **on_click_templates,
-                    struct fcft_font *font, enum font_shaping font_shaping,
-                    pixman_color_t foreground, struct deco *deco)
+particle_common_new(int left_margin, int right_margin, char **on_click_templates, struct fcft_font *font,
+                    enum font_shaping font_shaping, struct basedirs *basedirs, struct themes *themes, char *icon_theme, int icon_size, pixman_color_t foreground, struct deco *deco)
 {
     struct particle *p = calloc(1, sizeof(*p));
     p->left_margin = left_margin;
@@ -41,6 +44,10 @@ particle_common_new(int left_margin, int right_margin,
     p->font = font;
     p->font_shaping = font_shaping;
     p->deco = deco;
+    p->basedirs = basedirs;
+    p->themes = themes;
+    p->icon_theme = icon_theme;
+    p->icon_size = icon_size;
 
     if (on_click_templates != NULL) {
         for (size_t i = 0; i < MOUSE_BTN_COUNT; i++) {

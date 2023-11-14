@@ -6,6 +6,7 @@
 #include "color.h"
 #include "decoration.h"
 #include "font-shaping.h"
+#include "icon.h"
 #include "tag.h"
 
 enum mouse_event {
@@ -41,6 +42,11 @@ struct particle {
     enum font_shaping font_shaping;
     struct deco *deco;
 
+    struct themes *themes;
+    struct basedirs *basedirs;
+    char *icon_theme;
+    int icon_size;
+
     void (*destroy)(struct particle *particle);
     struct exposable *(*instantiate)(const struct particle *particle,
                                      const struct tag_set *tags);
@@ -66,7 +72,8 @@ struct exposable {
 struct particle *particle_common_new(
     int left_margin, int right_margin, char *on_click_templates[],
     struct fcft_font *font, enum font_shaping font_shaping,
-    pixman_color_t foreground, struct deco *deco);
+    struct basedirs *basedirs, struct themes *themes, char *icon_theme,
+    int icon_size, pixman_color_t foreground, struct deco *deco);
 
 void particle_default_destroy(struct particle *particle);
 
@@ -90,4 +97,7 @@ void exposable_default_on_mouse(
     {"font-shaping", false, &conf_verify_font_shaping}, \
     {"foreground", false, &conf_verify_color},          \
     {"deco", false, &conf_verify_decoration},           \
+    {"icon-basedirs", false, &conf_verify_icon_basedirs}, \
+    {"icon-theme", false, &conf_verify_string}, \
+    {"icon-size", false, &conf_verify_unsigned}, \
     {NULL, false, NULL}

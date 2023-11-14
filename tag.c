@@ -4,12 +4,11 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <ctype.h>
-#include <assert.h>
-#include<errno.h>
+#include <errno.h>
 
 #define LOG_MODULE "tag"
-#define LOG_ENABLE_DBG 1
+#define LOG_ENABLE_DBG 0
+#include "icon.h"
 #include "log.h"
 #include "module.h"
 
@@ -26,6 +25,11 @@ struct private {
         double value_as_float;
         char *value_as_string;
     };
+};
+
+struct icon_private {
+    char *name;
+    struct icon_pixmaps *pixmaps;
 };
 
 static const char *
@@ -156,8 +160,8 @@ int_refresh_in(const struct tag *tag, long units)
     if (tag->owner == NULL || tag->owner->refresh_in == NULL)
         return false;
 
-    assert(priv->value_as_int.realtime_unit == TAG_REALTIME_SECS ||
-           priv->value_as_int.realtime_unit == TAG_REALTIME_MSECS);
+    assert(priv->value_as_int.realtime_unit == TAG_REALTIME_SECS
+           || priv->value_as_int.realtime_unit == TAG_REALTIME_MSECS);
 
     long milli_seconds = units;
     if (priv->value_as_int.realtime_unit == TAG_REALTIME_SECS)
@@ -375,6 +379,50 @@ tag_new_string(struct module *owner, const char *name, const char *value)
     return tag;
 }
 
+static const char *
+icon_tag_name(const struct icon_tag *icon_tag)
+{
+    const struct icon_private *priv = icon_tag->private;
+    return priv->name;
+}
+
+static struct icon_pixmaps *
+pixmaps_as_pixmaps(const struct icon_tag *icon_tag)
+{
+    const struct icon_private *priv = icon_tag->private;
+    return priv->pixmaps;
+}
+
+void pixmap_destroy(struct icon_tag *icon_tag)
+{
+    struct icon_private *priv = icon_tag->private;
+    icon_pixmaps_dec(priv->pixmaps);
+    free(priv->name);
+    free(priv);
+    free(icon_tag);
+}
+
+struct icon_tag *
+icon_tag_new_pixmap(struct module *owner, const char *name, struct icon_pixmaps *pixmaps)
+{
+    if (pixmaps == NULL) {
+        return NULL;
+    }
+    struct icon_private *priv = malloc(sizeof(*priv));
+    priv->name = strdup(name);
+    priv->pixmaps = icon_pixmaps_inc(pixmaps);
+
+    struct icon_tag *icon_tag = malloc(sizeof(*icon_tag));
+    icon_tag->private = priv;
+    icon_tag->owner = owner;
+    icon_tag->name = &icon_tag_name;
+    icon_tag->pixmaps = &pixmaps_as_pixmaps;
+    icon_tag->destroy = &pixmap_destroy;
+
+    return icon_tag;
+
+}
+
 const struct tag *
 tag_for_name(const struct tag_set *set, const char *name)
 {
@@ -390,14 +438,22 @@ tag_for_name(const struct tag_set *set, const char *name)
     return NULL;
 }
 
-void
-tag_set_destroy(struct tag_set *set)
+const struct icon_tag *
+icon_tag_for_name(const struct tag_set *set, const char *name)
 {
-    for (size_t i = 0; i < set->count; i++)
-        set->tags[i]->destroy(set->tags[i]);
+    if (set == NULL)
+        return NULL;
 
-    set->tags = NULL;
-    set->count = 0;
+    for (size_t i = 0; i < set->icon_count; i++) {
+        const struct icon_tag *tag = set->icon_tags[i];
+        if (!tag)
+            continue;
+
+        if (strcmp(tag->name(tag), name) == 0)
+            return tag;
+    }
+
+    return NULL;
 }
 
 struct sbuf {
@@ -739,4 +795,20 @@ tags_expand_templates(char *expanded[], const char *template[], size_t nmemb,
 {
     for (size_t i = 0; i < nmemb; i++)
         expanded[i] = tags_expand_template(template[i], tags);
+}
+
+void
+tag_set_destroy(struct tag_set *set)
+{
+    for (size_t i = 0; i < set->count; i++)
+        set->tags[i]->destroy(set->tags[i]);
+
+    for (size_t i = 0; i < set->icon_count; i++) {
+        if (set->icon_tags[i] != NULL) {
+            set->icon_tags[i]->destroy(set->icon_tags[i]);
+        }
+    }
+
+    set->tags = NULL;
+    set->count = 0;
 }
