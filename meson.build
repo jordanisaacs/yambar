@@ -197,6 +197,7 @@ summary(
     'River': plugin_river_enabled,
     'Script': plugin_script_enabled,
     'Sway XKB keyboard': plugin_sway_xkb_enabled,
+    'Tray': plugin_tray_enabled,
     'XKB keyboard (for X11)': plugin_xkb_enabled,
     'XWindow (window tracking for X11)': plugin_xwindow_enabled,
   },

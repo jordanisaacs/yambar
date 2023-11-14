@@ -6,6 +6,9 @@ modules = []
 alsa = dependency('alsa', required: get_option('plugin-alsa'))
 plugin_alsa_enabled = alsa.found()
 
+systemd = dependency('libsystemd', required: get_option('plugin-tray'))
+plugin_tray_enabled = systemd.found()
+
 udev_backlight = dependency('libudev', required: get_option('plugin-backlight'))
 plugin_backlight_enabled = udev_backlight.found()
 
@@ -119,6 +122,10 @@ endif
 
 if plugin_sway_xkb_enabled
   mod_data += {'sway-xkb': [['i3-common.c', 'i3-common.h'], [dynlist, json_sway_xkb]]}
+endif
+
+if plugin_tray_enabled
+  mod_data += {'tray': [[], [m, dynlist, systemd]]}
 endif
 
 if plugin_xkb_enabled

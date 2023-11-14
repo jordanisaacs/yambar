@@ -14,6 +14,7 @@ depends=(
   'libyaml'
   'alsa-lib'
   'libpng'
+  'libsystemd.so'
   'libudev.so'
   'json-c'
   'libmpdclient'
